@@ -4,6 +4,10 @@
 /* Throwaway diagnostic test for today's sensor wiring: prints raw LDR + ultrasonic
    readings over USART2 every second. Not the real beam.c/ultrasonic.c modules. */
 
+/* hadc1/htim3 and LASER_EN_Pin/US_TRIG_Pin only exist after CubeMX regenerates
+   main.c/main.h for ADC1 (PA0), TIM3 CH1 input capture (PB4) and the PB5/PA8
+   GPIO labels (see docs/system_architecture.md §10) — this file won't build
+   until that CubeMX step is done. */
 extern ADC_HandleTypeDef hadc1;
 extern TIM_HandleTypeDef htim3;
 extern UART_HandleTypeDef huart2;
@@ -59,12 +63,14 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 
 static uint16_t read_ldr_raw(void)
 {
+  uint16_t value = 0;
   HAL_ADC_Start(&hadc1);
   if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK)
   {
-    return (uint16_t)HAL_ADC_GetValue(&hadc1);
+    value = (uint16_t)HAL_ADC_GetValue(&hadc1);
   }
-  return 0;
+  HAL_ADC_Stop(&hadc1);
+  return value;
 }
 
 static int32_t ping_ultrasonic_cm(void)

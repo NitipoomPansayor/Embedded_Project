@@ -98,8 +98,9 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-    app_loop();
+
     /* USER CODE BEGIN 3 */
+    app_loop();
   }
   /* USER CODE END 3 */
 }
