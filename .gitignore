@@ -1,0 +1,43 @@
+# ---------- STM32CubeIDE / Eclipse ----------
+# Workspace metadata (local to each machine)
+.metadata/
+# Old project folder that now only holds workspace metadata
+/Embedded_Project/
+# Build output
+stm32/Debug/
+stm32/Release/
+*.o
+*.d
+*.su
+*.elf
+*.map
+*.list
+*.hex
+*.bin
+
+# ---------- ESP32 (Arduino / PlatformIO / ESP-IDF) ----------
+mcu/**/.pio/
+mcu/**/build/
+mcu/**/sdkconfig.old
+
+# ---------- Web ----------
+node_modules/
+dist/
+.next/
+.cache/
+
+# ---------- Secrets (WiFi, cloud keys) ----------
+.env
+.env.*
+!.env.example
+**/secrets.h
+**/credentials.h
+
+# ---------- Course material (kept local) ----------
+docs/
+
+# ---------- OS / editors ----------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
