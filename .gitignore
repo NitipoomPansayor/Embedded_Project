@@ -34,7 +34,7 @@ dist/
 **/credentials.h
 
 # ---------- Course material (kept local) ----------
-docs/
+docs/*.pdf
 
 # ---------- OS / editors ----------
 .DS_Store

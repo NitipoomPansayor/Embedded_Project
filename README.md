@@ -1,85 +1,83 @@
-# People Counting Gate System
+# People Counting Gate
 
 Final project for the **Embedded System Lab (Fall 2026)**.
 
-An IoT gate that counts the people who walk through it. An **STM32** reads the sensors and drives the actuators. It sends the data over UART to an **ESP32-S3 (NodeMCU)**, which works as the WiFi bridge and sends it to the cloud. A **web dashboard** shows the count.
+An IoT occupancy counter for room doors. A laser beam and an ultrasonic sensor placed a little apart in the doorway tell the **STM32** which way each person is walking, so it always knows how many people are inside. The STM32 sends the count over UART to an **ESP32-S3 (NodeMCU)**, which syncs it with **Firebase**. A **website** shows every room live as **Empty**, **Available** or **Full**. An admin sets each room's capacity.
 
-> **Status:** early setup. The requirements, sensors, and stack are still TBD.
+> **Status:** requirements and architecture agreed; implementation not started.
+
+## Docs
+
+- [Requirements](docs/requirement.md): what the system must do, demo checklist
+- [System architecture](docs/system_architecture.md): hardware, pin map, STM32 ↔ ESP32 protocol, Firebase data model
+- [AI.md](AI.md): rules for AI coding assistants (Claude / Gemini)
 
 ## System overview
 
 ```
- Sensors / actuators          UART                  WiFi
- ───────────────────►  STM32  ◄────►  ESP32-S3  ─────────►  Cloud  ◄────  Web dashboard
-                      (NUCLEO-F411RE)  (NodeMCU)           (TBD)
+ Laser + LDR (corridor side) ─┐
+                              ├─► STM32 ──UART──► ESP32-S3 ──WiFi──► Firebase ◄── Website
+ Ultrasonic  (room side)  ────┘  (count)         (bridge)           (RTDB+Auth)   (React)
 ```
 
 ## Repository structure
 
-| Folder   | What it holds                                                         |
-| -------- | --------------------------------------------------------------------- |
-| `stm32/` | STM32CubeIDE project for the NUCLEO-F411RE (sensor reading, control)  |
-| `mcu/`   | ESP32-S3 (NodeMCU) firmware: WiFi bridge between the STM32 and the cloud |
-| `web/`   | Web dashboard / UI                                                    |
+| Folder   | What it holds |
+| -------- | ------------- |
+| `stm32/` | STM32CubeIDE project for the NUCLEO-F411RE: sensors, direction logic, count |
+| `mcu/`   | ESP32-S3 (NodeMCU) firmware: WiFi bridge between the STM32 and Firebase |
+| `web/`   | Dashboard (public) and admin page (capacity, count correction) |
+| `docs/`  | Requirements and architecture |
 
 ## Hardware
 
-| Part             | Details                                     |
-| ---------------- | ------------------------------------------- |
-| Main MCU         | STM32F411RET6 on a **NUCLEO-F411RE** board  |
-| WiFi bridge      | ESP32-S3 (NodeMCU)                          |
-| Sensor/actuator 1 | TBD                                        |
-| Sensor/actuator 2 | TBD                                        |
-| Sensor/actuator 3 | TBD                                        |
+| Part | Role |
+| ---- | ---- |
+| NUCLEO-F411RE (STM32F411RET6) | Main MCU: reads sensors, counts |
+| ESP32-S3 (NodeMCU) | WiFi bridge |
+| KY-008 laser module | **Actuator:** beam emitter, switched by the STM32 |
+| KY-018 photoresistor module | **Sensor:** detects when the beam is blocked |
+| Ultrasonic module (HC-SR04) | **Sensor:** second presence sensor, for direction |
+| MP1584EN | 5 V step-down power supply |
 
-### STM32 pin map (current CubeMX configuration)
-
-| Pin      | Function                           |
-| -------- | ---------------------------------- |
-| PA2      | USART2_TX                          |
-| PA3      | USART2_RX                          |
-| PA5      | GPIO output (on-board LED LD2)     |
-| PC13     | EXTI13 (on-board user button B1)   |
-| PA13/PA14 | SWD debug (SWDIO / SWCLK)         |
-
-> On the NUCLEO board, USART2 is connected to the ST-LINK virtual COM port by default. TBD: which UART will connect to the ESP32.
+Full pin map and wiring: [system_architecture.md §3](docs/system_architecture.md#3-hardware).
 
 ## Tech stack
 
-| Part          | Choice |
-| ------------- | ------ |
-| STM32         | STM32CubeIDE + HAL (C) |
-| ESP32-S3      | TBD (Arduino IDE / PlatformIO / ESP-IDF) |
-| Cloud         | TBD (NETPIE / Firebase / …) |
-| Web           | TBD |
+| Part | Choice |
+| ---- | ------ |
+| STM32 | STM32CubeIDE + HAL (C) |
+| ESP32-S3 | PlatformIO + Arduino framework (C++) |
+| Cloud | Firebase Realtime Database + Firebase Auth |
+| Web | React + Vite, hosted on Firebase Hosting |
 
 ## Getting started
 
-### STM32
+### STM32 (`stm32/`)
 1. Open STM32CubeIDE.
 2. **File → Import → General → Existing Projects into Workspace**, then choose the `stm32/` folder.
 3. Build and flash it to the NUCLEO-F411RE.
 4. To change pins or peripherals, open `stm32/Embedded_Project.ioc` in CubeMX and regenerate the code. Write your own code only between the `/* USER CODE BEGIN */` and `/* USER CODE END */` markers so regenerating doesn't erase it.
 
 ### ESP32-S3 (`mcu/`)
-TBD
+Not set up yet. It will be a PlatformIO project: copy `include/secrets.example.h` to `include/secrets.h`, fill it in, then run `pio run -t upload`.
 
 ### Web (`web/`)
-TBD
+Not set up yet. It will be a Vite app: copy `.env.example` to `.env`, fill it in, then run `npm install` and `npm run dev`.
 
-> Never commit WiFi passwords or cloud keys. Put them in a `secrets.h` / `.env` file (these are gitignored) and commit an example file instead.
+> Never commit WiFi passwords or cloud keys. `secrets.h` and `.env` are gitignored.
 
-## Requirements (from the course brief)
+## Course requirements
 
 - [ ] Communication and some processing between the STM32 and the NodeMCU
-- [ ] At least three different types of sensors and/or actuators
-- [ ] Connected to the Internet and a cloud system
+- [ ] At least three different types of sensors and/or actuators (laser, photoresistor, ultrasonic)
+- [ ] Connected to the Internet and a cloud system (Firebase)
 
 ## Team
 
 | Name | Student ID | Role |
 | ---- | ---------- | ---- |
-|      |            |      |
-|      |            |      |
-|      |            |      |
-|      |            |      |
+|      |            | System architecture & integration |
+|      |            | STM32 firmware |
+|      |            | ESP32 firmware & Firebase |
+|      |            | Website |
